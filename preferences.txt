@@ -1,0 +1,16 @@
+Tala,Allison,Ali,Lilli,Sarah
+Allison,Ali,Lilli,Sarah,Tala
+Evelyn,Allison,Ali,Lilli
+Sage,Arlyvia,Suchita,Tara,Sav
+Arlyvia,Suchita,Sage,Tara,Kim
+Suchita,Arlyvia,Tara,Sage,Kim
+Tara,Arlyvia,Suchita,Sage,Sav
+Kim,Hailey,Sav,Alex,Arlyvia
+Alex,Emma,Hailey,Kim,Sav
+Sav,Kim,Hailey,Emma,Alex
+Sarah,Lilli,Sophia,Hailey,Emma
+Hailey,Sav,Kim,Alex,Emma
+Ali,Allison,Lilli,Sophia
+Sophia,Ali,Lilli,Allison
+Lilli,Sophia,Allison,Ali,Sarah
+Emma,Alex,Hailey,Sav,Kim
