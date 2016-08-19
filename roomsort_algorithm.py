@@ -217,7 +217,6 @@ class Team:
         return members_happiness_array
 
     def evolve_step(self):
-        config = self.rand_rooms()
         start_happiness = sum(self.members_happiness())
 
         # Order members by happinesses
@@ -233,20 +232,13 @@ class Team:
         print " "
         """
 
-        # Keep trying switches until new arrangement is happier (until we run out of pairs)
-        member_A = ordered[0][1]
-        room_A = member_A.room_number
-        member_B = ordered[1][1]
-        room_B = member_B.room_number
-        member_A.move_room(room_B)
-        member_B.move_room(room_A)
-
-        end_happiness = sum(self.members_happiness())
-        print end_happiness
-
-        i = 1
-        while end_happiness >= start_happiness and i < self.n_members:
-            # Keep trying switches until new arrangement is happier (until we run out of pairs)
+        i = 0
+        j = 0
+        while i < self.n_members - 1:
+            # Switch saddest member until new arrangement is happier (until we run out of pairs)
+            ##################################################################################
+            ## THIS is where real improvement can be made; how to try switching each pair?? ##
+            ##################################################################################
             member_A = ordered[i][1]
             room_A = member_A.room_number
             member_B = ordered[i+1][1]
@@ -255,20 +247,32 @@ class Team:
             member_B.move_room(room_A)
             # Recalculate overall happiness
             end_happiness = sum(self.members_happiness())
-            i += 1
+            if end_happiness < start_happiness:
+                # Happier arrangement finally found, so break out
+                print "HAPPIER!"
+                print end_happiness
+                return 0
+            else:
+                # Undo switch if it isn't happier!
+                member_A.move_room(room_A)
+                member_B.move_room(room_B)
+            j += 1
+            if j > self.n_members - 1:
+                i += 1
+                j = 0
 
     def evolve_iterate(self,max_iterations):
+        self.rand_rooms()
         counter = 0
         while counter < max_iterations:
             self.evolve_step()
             counter += 1
-
         self.print_rooms()
 
 Robotics = Team("Murphy's Outlaws",4)  # Create team object
 data = read_prefs("preferences.txt")  # Read in member data
 members = [Member(x,Robotics) for x in data]  # Create members from CSV data and automatically add them to the team
-Robotics.evolve_iterate(10)
+Robotics.evolve_iterate(100)
 
 print "_______________________________________"
 x = raw_input("END")
