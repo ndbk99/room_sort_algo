@@ -36,26 +36,12 @@ def read_prefs(filename):
     print "CSV data read successfully"
     return data
 
-def find_member(Team,name):
-    """
-    Quick and dirty function to return a member object if it has the queried name
-
-    Parameters
-    ----------
-    Team: Team() object
-        team that the member you're looking for belongs to
-    name: string
-        the name of the member you're looking for
-
-    Returns
-    -------
-    member: Member() object
-        team member with name "name" inputted as parameter
-    """
-    members = Team.members
-    for member in members:
-        if member.name == name:
-            return member
+def members_from_name(names):
+    data = []
+    for name in names:
+        data.append([name,[]])
+    print data
+    return data
 
 # CLASS: Member of robotics team
 class Member:
@@ -93,7 +79,7 @@ class Member:
     def happiness(self):
         f = 0  # Lower f => higher happiness
         room = self.Team.rooms[self.room_number]
-        prefs = [find_member(self.Team,name) for name in self.prefs]
+        prefs = [self.Team.find_member(name) for name in self.prefs]
 
         for member in room:
             if member in prefs:  # Add index for members in prefs
@@ -146,9 +132,9 @@ class Team:
     print_rooms: prints current room arrangement in niceish format
     find_happiest: DEPRECATED brute-force search; runs rand_rooms() repeatedly and stores progressively "happier" room arrangements
     members_happiness: returns happiness of each member on the team
-    evolve_step: single step where one pair of members are switched to create happier configuration
-    evolve_iterate: function that runs evolve_step repeatedly to work towards the happiest config
-    ## WORK TO BE DONE on evolve functions!
+    evolve: single step where one pair of members are switched to create happier configuration
+    run_sort_algorithm: runs evolve_step repeatedly to work towards the happiest config
+    algorithm_iterate: iterates evolve_iterate however many times and returns the "happiest" configuration out of all of those
     """
 
     def __init__(self,name,n_rooms,members=[]):
@@ -166,6 +152,27 @@ class Team:
                 print "|", member.name,
             print " "
         print " "
+
+    def find_member(self,name):
+        """
+        Quick and dirty function to return a member object if it has the queried name
+
+        Parameters
+        ----------
+        Team: Team() object
+            team that the member you're looking for belongs to
+        name: string
+            the name of the member you're looking for
+
+        Returns
+        -------
+        member: Member() object
+            team member with name "name" inputted as parameter
+        """
+        members = self.members
+        for member in members:
+            if member.name == name:
+                return member
 
     def rand_rooms(self,print_rooms=False):
 
@@ -218,14 +225,14 @@ class Team:
             members_happiness_array.append(member.happiness())
         return members_happiness_array
 
-    def evolve_step(self):
+    def evolve(self):
         start_happiness = sum(self.members_happiness())
 
         # Order members by happinesses
         happiest = 10000
         saddest = 0
         index = 0
-        ordered = [[h,m] for h,m in sorted(zip(self.members_happiness(),self.members),reverse=True)]
+        ordered = [[h,m] for h,m in sorted(zip(self.members_happiness(),self.members),reverse=True)]  # THIS IS WHERE THE PROBLEM IS
 
         i = 0
         j = 0
@@ -246,7 +253,7 @@ class Team:
                 return sum(self.members_happiness())
             else:
                 # Undo switch if it isn't happier and we still have more switches to try
-                if i < int(self.n_members) - 2:
+                if i < self.n_members - 2:
                     member_A.move_room(room_A)
                     member_B.move_room(room_B)
                 # End of list reached; switch saddest members anyway to keep program from stalling at local minimum
@@ -261,10 +268,7 @@ class Team:
                     print "reached list limit... execute switch of saddest anyway. happiness =", sum(self.members_happiness())
                     self.print_rooms()
 
-            ################################################
             ### NEXT STEP: write code to detect and terminate stalls.
-            ### STEP AFTER THAT: run evolve_iterate() a bunch of times and pick out the best room arrangement found from all runs
-            ################################################
 
             j += 1
             if j > self.n_members - 1:
@@ -273,24 +277,24 @@ class Team:
         print sum(self.members_happiness())
         return sum(self.members_happiness())
 
-    def evolve_iterate(self,max_iterations):
+    def run_sort_algorithm(self):
         self.rand_rooms()  # Set random initial conditions for the iterations
-        prev_happiness = self.evolve_step()
+        prev_happiness = self.evolve()
         current_happiness = 0
-        counter = 1
-        while counter < max_iterations:
-            current_happiness = self.evolve_step()
+        # Run algorithm until it stalls! More efficient this way
+        while prev_happiness > current_happiness:
+            current_happiness = self.evolve()
             prev_happiness = current_happiness
-            if prev_happiness == current_happiness:  # If program has stalled at a local minimum, break out
-                return sum(self.members_happiness())
-            counter += 1
+        print "End happiness =", sum(self.members_happiness())
+        self.print_rooms()
+        return sum(self.members_happiness())
 
-    def algorithm_iterate(self,step_counts,iteration_counts):
+    def algorithm_iterate(self,iteration_counts):
         best_happiness = 100000
         best_rooms = []
         counter = 0
         while counter < iteration_counts:
-            current_happiness = self.evolve_iterate(step_counts)
+            current_happiness = self.run_sort_algorithm()
             if current_happiness < best_happiness:  # Check if the value returned from the current algorithm run is less than the one before
                 # If so, set stored "best values" to current ones
                 best_happiness = current_happiness
@@ -306,10 +310,23 @@ class Team:
             names.append([m.name for m in room])
         print best_happiness, names
 
+    def best_switch(self):
+        self.rooms = [\
+        [self.find_member("Ali"),self.find_member("Allison"),self.find_member("Tala"),self.find_member("Sage")],\
+        [self.find_member("Tara"),self.find_member("Suchita"),self.find_member("Arlyvia"),self.find_member("Evelyn")],\
+        [self.find_member("Alex"),self.find_member("Sav"),self.find_member("Hailey"),self.find_member("Kim")],\
+        [self.find_member("Emma"),self.find_member("Sophia"),self.find_member("Lilli"),self.find_member("Sarah")]]
+        print sum(self.members_happiness())
+        self.evolve()
+        print sum(self.members_happiness())
+        self.print_rooms()
+
 Robotics = Team("Murphy's Outlaws",4)  # Create team object
-data = read_prefs("preferences.txt")  # Read in member data
+data = read_prefs("preferences.txt")  # Read in member data from CSV
+# data = members_from_name(["Ali","Allison","Tala","Sage","Tara","Suchita","Arlyvia","Evelyn","Alex","Sav","Hailey","Kim","Emma","Sophia","Lilli","Sarah"])
 members = [Member(x,Robotics) for x in data]  # Create members from CSV data and automatically add them to the team
-Robotics.algorithm_iterate(1000,1000)
+Robotics.algorithm_iterate(1000)
+# Robotics.best_switch()
 
 print "_______________________________________"
 x = raw_input("END")
