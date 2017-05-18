@@ -20,16 +20,16 @@ def read_prefs(filename):
         holds M items of processed info for each of N team members in format [name,[roommate preferences from 1 to M]]
     """
     data = []
+    # Read members one by one with CSV reader
     with open(filename) as csvfile:
         doc = csv.reader(csvfile)
-        # Read each member
         for row in doc:
             n_prefs = len(row)
             member = []
-            # Add member name
+            # Add member name and preferences
             member.append(row[0])
-            # Add rooming preferences
             member.append([])
+            # Add data to return array
             for n in range(1,n_prefs):
                 member[1].append(row[n])
             data.append(member)
@@ -253,10 +253,10 @@ class Team:
                 return sum(self.members_happiness())
             else:
                 # Undo switch if it isn't happier and we still have more switches to try
-                if i < self.n_members - 2:
+                if (i < self.n_members - 2) and (random() > 0.1):
                     member_A.move_room(room_A)
                     member_B.move_room(room_B)
-                # End of list reached; switch saddest members anyway to keep program from stalling at local minimum
+                # Last switch to try reached; switch saddest members anyway to keep program from stalling at local minimum
                 else:
                     # Unclear if this code is helpful; still leads to stalls. See below #### section for better ideas. May delete this later.
                     saddest_member = ordered[0][1]
